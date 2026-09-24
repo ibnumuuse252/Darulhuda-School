@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="so">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maamulka — Qiimeynta Macallimiinta</title>
+<style>
+  :root {
+    --bg:#f2f4f8; --surface:#fff; --surface-2:#eef1f6; --text:#1a2035; --text-dim:#5b6478;
+    --border:#dde2ec; --navy:#0d1b5e; --navy-dark:#081142; --gold:#f2b705; --accent:#2f7fd1;
+    --good:#1e8e5a; --warn:#c98a13; --bad:#c0392b;
+    --shadow:0 1px 3px rgba(13,27,94,.10),0 1px 2px rgba(13,27,94,.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#0f1320; --surface:#161b2c; --surface-2:#1d2338; --text:#e7ebf5; --text-dim:#8f97b3;
+      --border:#2a3150; --navy:#3550c9; --navy-dark:#1a2560; --gold:#f2c94c; --accent:#5b9fe0;
+      --good:#3fae7a; --warn:#e0ac3f; --bad:#e0685b;
+      --shadow:0 1px 3px rgba(0,0,0,.4),0 1px 2px rgba(0,0,0,.3); }
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif; font-size:15px; }
+  header { padding:16px; background:linear-gradient(135deg,var(--navy-dark),var(--navy)); color:#fff; display:flex; align-items:center; gap:12px; }
+  header img.logo { width:46px; height:46px; border-radius:50%; object-fit:cover; box-shadow:0 0 0 2px var(--gold); flex-shrink:0; }
+  header .htext h1 { margin:0 0 2px; font-size:1.05rem; }
+  header .htext p { margin:0; font-size:.75rem; opacity:.85; }
+  nav.tabs { display:flex; gap:6px; overflow-x:auto; padding:10px 12px; background:var(--surface); border-bottom:1px solid var(--border); position:sticky; top:0; z-index:10; }
+  nav.tabs button { flex:0 0 auto; border:1px solid var(--border); background:var(--surface-2); color:var(--text); padding:8px 14px; border-radius:20px; font-size:.85rem; font-weight:600; cursor:pointer; }
+  nav.tabs button.active { background:var(--navy); border-color:var(--navy); color:#fff; }
+  main { padding:14px; max-width:760px; margin:0 auto; }
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:16px; margin-bottom:14px; box-shadow:var(--shadow); }
+  .card h2 { margin:0 0 12px; font-size:1rem; color:var(--navy); }
+  @media (prefers-color-scheme: dark) { .card h2 { color:var(--gold); } }
+  .stat-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:14px; }
+  .stat { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:14px; text-align:center; box-shadow:var(--shadow); }
+  .stat .num { font-size:1.6rem; font-weight:800; color:var(--navy); }
+  @media (prefers-color-scheme: dark) { .stat .num { color:var(--gold); } }
+  .stat .lbl { font-size:.75rem; color:var(--text-dim); }
+  label { display:block; font-size:.8rem; font-weight:600; color:var(--text-dim); margin:10px 0 4px; }
+  input[type=text],input[type=password],input[type=date],select,textarea {
+    width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--border); background:var(--surface-2); color:var(--text); font-size:.95rem; font-family:inherit;
+  }
+  textarea { resize:vertical; min-height:60px; }
+  .btn { display:inline-block; background:var(--navy); color:#fff; border:none; padding:11px 18px; border-radius:10px; font-weight:700; font-size:.9rem; cursor:pointer; margin-top:12px; }
+  .btn.gold { background:var(--gold); color:#1a1a1a; }
+  .btn.secondary { background:var(--surface-2); color:var(--text); border:1px solid var(--border); }
+  .btn:disabled { opacity:.5; }
+  .teacher-row { display:flex; justify-content:space-between; align-items:center; gap:10px; padding:12px 4px; border-bottom:1px solid var(--border); }
+  .teacher-row:last-child { border-bottom:none; }
+  .teacher-row .name { font-weight:700; cursor:pointer; }
+  .teacher-row .sub { font-size:.78rem; color:var(--text-dim); }
+  .badge { display:inline-block; padding:3px 10px; border-radius:20px; font-size:.75rem; font-weight:700; color:#fff; }
+  .badge.good { background:var(--good); } .badge.warn { background:var(--warn); } .badge.bad { background:var(--bad); } .badge.neutral { background:var(--text-dim); }
+  .empty { text-align:center; padding:28px 10px; color:var(--text-dim); font-size:.9rem; }
+  .backbtn { background:none; border:none; color:var(--accent); font-weight:700; font-size:.85rem; padding:0 0 10px; cursor:pointer; }
+  .eval-item { border:1px solid var(--border); border-radius:12px; padding:12px; margin-bottom:10px; background:var(--surface-2); }
+  .eval-item .row1 { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+  .notes-txt { font-size:.82rem; color:var(--text-dim); margin-top:6px; white-space:pre-wrap; }
+  .chart-wrap { position:relative; height:200px; margin-top:8px; }
+  .compare-note { font-size:.8rem; padding:10px 12px; border-radius:10px; margin-top:10px; }
+  .compare-note.ok { background:rgba(30,142,90,.12); color:var(--good); }
+  .compare-note.pending { background:rgba(201,138,19,.12); color:var(--warn); }
+  .del-x { background:none; border:none; color:var(--bad); font-size:1.1rem; cursor:pointer; padding:2px 6px; }
+  .loading { text-align:center; padding:40px; color:var(--text-dim); }
+  .link-box { display:flex; gap:6px; align-items:center; background:var(--surface-2); border:1px solid var(--border); border-radius:10px; padding:8px 10px; margin-top:8px; font-size:.78rem; word-break:break-all; }
+  .link-box button { flex:0 0 auto; }
+  #loginScreen { max-width:340px; margin:60px auto; text-align:center; }
+  #loginScreen img.logo { width:70px; height:70px; border-radius:50%; box-shadow:0 0 0 3px var(--gold); margin-bottom:8px; }
+
+  .scale-legend { font-size:.72rem; color:var(--text-dim); line-height:1.6; background:var(--surface-2); border-radius:10px; padding:10px 12px; margin-top:6px; }
+  .qitem { border:1px solid var(--border); border-radius:12px; padding:12px; margin-bottom:10px; background:var(--surface); }
+  .qitem-title { font-weight:700; font-size:.85rem; margin-bottom:2px; }
+  .qitem-text { font-size:.8rem; color:var(--text-dim); margin-bottom:8px; line-height:1.4; }
+  .rate-row { display:flex; gap:5px; margin-bottom:6px; }
+  .rate-btn { flex:1; padding:9px 2px; border-radius:8px; border:1px solid var(--border); background:var(--surface-2); color:var(--text); font-size:.85rem; font-weight:800; cursor:pointer; text-align:center; }
+  .rate-btn[data-r="5"].sel { background:var(--good); border-color:var(--good); color:#fff; }
+  .rate-btn[data-r="4"].sel { background:#5aa96d; border-color:#5aa96d; color:#fff; }
+  .rate-btn[data-r="3"].sel { background:var(--warn); border-color:var(--warn); color:#fff; }
+  .rate-btn[data-r="2"].sel { background:#d98a4c; border-color:#d98a4c; color:#fff; }
+  .rate-btn[data-r="1"].sel { background:var(--bad); border-color:var(--bad); color:#fff; }
+  .qitem-comment { width:100%; padding:7px 10px; border-radius:8px; border:1px solid var(--border); background:var(--surface-2); color:var(--text); font-size:.8rem; }
+  .progress-bar-wrap { background:var(--surface-2); border-radius:20px; height:8px; overflow:hidden; margin:8px 0 4px; }
+  .progress-bar { background:var(--navy); height:100%; transition:width .2s; }
+
+  details { margin-top:8px; }
+  summary { font-size:.8rem; color:var(--accent); cursor:pointer; font-weight:600; }
+  .cmp-row { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border); font-size:.8rem; gap:8px; }
+  .cmp-row:last-child { border-bottom:none; }
+  .cmp-title { flex:1; }
+  .cmp-vals { display:flex; align-items:center; gap:6px; font-weight:800; white-space:nowrap; }
+  .cmp-up { color:var(--good); } .cmp-down { color:var(--bad); } .cmp-same { color:var(--text-dim); }
+  .cmp-summary { font-size:.82rem; padding:10px 12px; border-radius:10px; margin-bottom:8px; background:var(--surface-2); }
+
+  #reportArea { background:#fff; color:#111; border-radius:14px; padding:20px; box-shadow:var(--shadow); }
+  #reportArea h2, #reportArea h3 { color:#0d1b5e; }
+  #reportArea table { width:100%; border-collapse:collapse; font-size:.82rem; margin-top:8px; }
+  #reportArea th, #reportArea td { border:1px solid #ccc; padding:6px 8px; text-align:left; }
+  #reportArea th { background:#eef1f6; }
+  .report-header { display:flex; align-items:center; gap:12px; margin-bottom:10px; }
+  .report-header img { width:60px; height:60px; border-radius:50%; }
+  @media print {
+    nav.tabs, .no-print, header { display:none !important; }
+    body { background:#fff; }
+    main { max-width:100%; padding:0; }
+    #reportArea { box-shadow:none; border:none; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <img class="logo" src="/logo.jpg" alt="Dugsiga Howlwadaag Sare">
+  <div class="htext">
+    <h1>Dugsiga Howlwadaag Sare</h1>
+    <p>Maamulka — Qiimeynta Macallimiinta</p>
+  </div>
+</header>
+
+<div id="loginScreen" style="display:none;">
+  <div class="card" style="text-align:center;">
+    <img class="logo" src="/logo.jpg" alt="logo">
+    <h2>Gal Maamulka</h2>
+    <label>Sirta (Password)</label>
+    <input type="password" id="pwInput" placeholder="Geli sirta">
+    <button class="btn" id="loginBtn" style="width:100%;">Gal</button>
+    <p id="loginErr" style="color:var(--bad);font-size:.8rem;"></p>
+  </div>
+</div>
+
+<div id="appShell" style="display:none;">
+  <nav class="tabs">
+    <button data-tab="dashboard" class="active">Guddiga Guud</button>
+    <button data-tab="teachers">Macallimiinta</button>
+    <button data-tab="newEval">Qiimeyn Cusub</button>
+    <button data-tab="reports">Warbixin</button>
+  </nav>
+  <main id="app"><div class="loading">Soo dejinaya...</div></main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+(function(){
+  "use strict";
+
+  // ---------- Official 10-item evaluation form ----------
+  const CRITERIA = [
+    { key:"prep", title:"1. Cashar-diyaarinta", text:"Macallinku ma haystaa cashar-diyaarin dhammaystiran oo ansax ah?" },
+    { key:"scheme", title:"2. Isla Socodka Scheme of Work iyo Cashar-diyaarinta", text:"Ma isla socdaan Scheme of Work-ka iyo Cashar-diyaarinta, oo casharka la dhigayo ma waafaqsan yahay qorshaha?" },
+    { key:"agabka", title:"3. Agabka Waxbarashada", text:"Macallinku ma haystaa oo si habboon ma u isticmaalaa agabka looga baahan yahay casharka?" },
+    { key:"habka", title:"4. Habka Wax-dhigidda", text:"Macallinku ma adeegsadaa habab wax-dhigid oo ku habboon da'da iyo kartida ardayda?" },
+    { key:"fahamka", title:"5. Hubinta Fahamka Ardayda", text:"Macallinku ma hubiyaa fahamka ardayda inta casharku socdo?" },
+    { key:"fasalka", title:"6. Maareynta Fasalka", text:"Macallinku ma si wanaagsan ayuu u maareeyaa fasalka, una ilaaliyaa nidaamka iyo anshaxa ardayda?" },
+    { key:"qaybgal", title:"7. Ka-qaybgalka Ardayda", text:"Macallinku ma dhiirrigeliyaa oo ma ka qaybgelinayaa ardayda casharka?" },
+    { key:"ixtiraam", title:"8. Xiriirka iyo Ixtiraamka Ardayda", text:"Macallinku ma ixtiraamaa ardayda, qof walbana ma siiyaa fursad siman?" },
+    { key:"qiimeyn", title:"9. Qiimeynta Ardayda", text:"Macallinku ma qiimeeyaa aqoonta, xirfadaha iyo fahamka ardayda?" },
+    { key:"jawaab", title:"10. Jawaab-celinta Ardayda", text:"Macallinku ma siiyaa ardayda jawaab-celin iyo talooyin ka caawiya horumarkooda?" }
+  ];
+  const TOTAL_ITEMS = CRITERIA.length;
+
+  let teachers = [];
+  let evaluations = [];
+  let currentTeacherId = null;
+  let activeTab = "dashboard";
+  let preselectTeacher = null;
+  let chartInstance = null;
+  let evalState = {};
+
+  const app = document.getElementById("app");
+  const PW_KEY = "qm_admin_pw";
+
+  function getPw(){ return localStorage.getItem(PW_KEY) || ""; }
+
+  async function api(path, opts){
+    opts = opts || {};
+    opts.headers = Object.assign({ "Content-Type":"application/json", "x-admin-password": getPw() }, opts.headers||{});
+    const res = await fetch(path, opts);
+    if (res.status === 401){ showLogin("Sirta waa qalad, fadlan isku day mar kale."); throw new Error("unauthorized"); }
+    if (!res.ok){ const j = await res.json().catch(()=>({})); throw new Error(j.error||"server error"); }
+    return res.status === 204 ? null : res.json();
+  }
+
+  function showLogin(err){
+    document.getElementById("loginScreen").style.display = "block";
+    document.getElementById("appShell").style.display = "none";
+    document.getElementById("loginErr").textContent = err || "";
+  }
+  function showApp(){
+    document.getElementById("loginScreen").style.display = "none";
+    document.getElementById("appShell").style.display = "block";
+  }
+
+  document.getElementById("loginBtn").addEventListener("click", async ()=>{
+    const pw = document.getElementById("pwInput").value;
+    try {
+      const res = await fetch("/api/login", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({password: pw}) });
+      const j = await res.json();
+      if (j.ok){ localStorage.setItem(PW_KEY, pw); showApp(); loadAll(); }
+      else document.getElementById("loginErr").textContent = "Sirta waa qalad.";
+    } catch(e){ document.getElementById("loginErr").textContent = "Khalad server ah."; }
+  });
+  document.getElementById("pwInput").addEventListener("keydown", e=>{ if (e.key==="Enter") document.getElementById("loginBtn").click(); });
+
+  document.querySelectorAll("nav.tabs button").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      document.querySelectorAll("nav.tabs button").forEach(b=>b.classList.remove("active"));
+      btn.classList.add("active");
+      activeTab = btn.dataset.tab;
+      currentTeacherId = null;
+      render();
+    });
+  });
+
+  async function loadAll(){
+    try {
+      teachers = await api("/api/teachers");
+      evaluations = await api("/api/evaluations");
+      render();
+    } catch(e){ console.error(e); }
+  }
+
+  async function boot(){
+    const pw = getPw();
+    if (!pw){ showLogin(); return; }
+    try {
+      const res = await fetch("/api/login", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({password: pw}) });
+      const j = await res.json();
+      if (j.ok){ showApp(); loadAll(); } else showLogin();
+    } catch(e){ showLogin("Khalad xidhiidh server ah."); }
+  }
+
+  function fmt1(n){ return (Math.round(n*10)/10).toFixed(1); }
+  function overallLevel(pct){
+    if (pct>=90) return "Heer Sare";
+    if (pct>=70) return "Wanaagsan";
+    if (pct>=50) return "La Aqbali Karo";
+    if (pct>=30) return "U Baahan Horumarin";
+    return "U Baahan Taageero Degdeg ah";
+  }
+  function scoreBadgeClass(pct){ if (pct>=70) return "good"; if (pct>=50) return "warn"; return "bad"; }
+  function teacherEvals(id){ return evaluations.filter(e=>e.teacher_id===id).sort((a,b)=>new Date(a.date)-new Date(b.date)); }
+  function teacherLatestScore(id){ const e=teacherEvals(id); return e.length? Number(e[e.length-1].score) : null; }
+  function teacherOverallScore(id){ const e=teacherEvals(id); if(!e.length) return null; return e.reduce((a,x)=>a+Number(x.score),0)/e.length; }
+  function escapeHtml(s){ return String(s||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m])); }
+
+  // ---------- Item-level comparison between two evaluations ----------
+  function compareItems(prevEval, currEval){
+    return CRITERIA.map(c=>{
+      const p = (prevEval.items||[]).find(it=>it.key===c.key);
+      const cur = (currEval.items||[]).find(it=>it.key===c.key);
+      const pr = p ? Number(p.rating) : null;
+      const cr = cur ? Number(cur.rating) : null;
+      let status = "same";
+      if (pr!==null && cr!==null){ if (cr>pr) status="up"; else if (cr<pr) status="down"; }
+      return { key:c.key, title:c.title, prev:pr, curr:cr, delta:(pr!==null&&cr!==null)?cr-pr:null, status };
+    });
+  }
+  function comparisonSummary(cmp){
+    const up = cmp.filter(c=>c.status==="up").length;
+    const down = cmp.filter(c=>c.status==="down").length;
+    const same = cmp.filter(c=>c.status==="same").length;
+    return { up, down, same };
+  }
+  function comparisonHtml(prevEval, currEval){
+    const cmp = compareItems(prevEval, currEval);
+    const s = comparisonSummary(cmp);
+    let summaryText;
+    if (s.up > s.down) summaryText = `📈 Guud ahaan macallinku wuxuu sameeyay HORUMAR — ${s.up} qodob ayaa kor u kacay, ${s.down} hoos u dhacay, ${s.same} isku mid ahaaday.`;
+    else if (s.down > s.up) summaryText = `📉 Guud ahaan macallinku wuxuu sameeyay HOOS U DHAC — ${s.down} qodob ayaa hoos u dhacay, ${s.up} kor u kacay, ${s.same} isku mid ahaaday.`;
+    else summaryText = `➖ Isbeddel weyn lama arag — ${s.up} kor u kacay, ${s.down} hoos u dhacay, ${s.same} isku mid ahaaday.`;
+
+    const rows = cmp.map(c=>{
+      let cls = "cmp-same", arrow = "▬", note = "Isku mid";
+      if (c.status==="up"){ cls="cmp-up"; arrow="▲"; note=`Horumar (+${c.delta})`; }
+      else if (c.status==="down"){ cls="cmp-down"; arrow="▼"; note=`Hoos u dhac (${c.delta})`; }
+      return `<div class="cmp-row">
+        <div class="cmp-title">${escapeHtml(c.title)}</div>
+        <div class="cmp-vals ${cls}">${c.prev!==null?c.prev:"—"} → ${c.curr!==null?c.curr:"—"} ${arrow} <span style="font-weight:600;font-size:.72rem;">${note}</span></div>
+      </div>`;
+    }).join("");
+    return `<div class="cmp-summary">${summaryText}</div>${rows}`;
+  }
+
+  async function addTeacher(name, subject){
+    const t = await api("/api/teachers", { method:"POST", body: JSON.stringify({name, subject}) });
+    await loadAll();
+    return t;
+  }
+  async function addTeachersBulk(names){
+    await api("/api/teachers/bulk", { method:"POST", body: JSON.stringify({names}) });
+    await loadAll();
+  }
+  async function deleteTeacher(id){ await api("/api/teachers/"+id, { method:"DELETE" }); if (currentTeacherId===id) currentTeacherId=null; await loadAll(); }
+  async function addEvaluation(teacherId, date, items, meta){
+    return await api("/api/evaluations", { method:"POST", body: JSON.stringify({teacherId, date, items, meta}) });
+  }
+  async function deleteEvaluation(id){ await api("/api/evaluations/"+id, { method:"DELETE" }); await loadAll(); }
+
+  function render(){
+    if (activeTab==="dashboard") return renderDashboard();
+    if (activeTab==="teachers") return currentTeacherId ? renderTeacherDetail(currentTeacherId) : renderTeachers();
+    if (activeTab==="newEval") return renderNewEval();
+    if (activeTab==="reports") return renderReports();
+  }
+
+  function renderDashboard(){
+    const totalTeachers = teachers.length;
+    const totalEvals = evaluations.length;
+    const overallScore = totalEvals ? fmt1(evaluations.reduce((a,e)=>a+Number(e.score),0)/totalEvals) : "—";
+    const needAttention = teachers.filter(t=>{ const s=teacherLatestScore(t.id); return s!==null && s<50; }).length;
+
+    let rows = teachers.map(t=>{
+      const evs = teacherEvals(t.id);
+      const latest = evs.length ? Number(evs[evs.length-1].score) : null;
+      const prev = evs.length>1 ? Number(evs[evs.length-2].score) : null;
+      let trend = "";
+      if (latest!==null && prev!==null){ trend = latest>prev+0.5?"▲":latest<prev-0.5?"▼":"▬"; }
+      return { t, evs, latest, trend };
+    }).sort((a,b)=>{
+      if (a.latest===null && b.latest===null) return 0;
+      if (a.latest===null) return 1;
+      if (b.latest===null) return -1;
+      return a.latest - b.latest;
+    });
+
+    app.innerHTML = `
+      <div class="stat-grid">
+        <div class="stat"><div class="num">${totalTeachers}</div><div class="lbl">Macallimiin</div></div>
+        <div class="stat"><div class="num">${totalEvals}</div><div class="lbl">Qiimeymo Guud</div></div>
+        <div class="stat"><div class="num">${overallScore}%</div><div class="lbl">Celceliska Guud</div></div>
+        <div class="stat"><div class="num" style="color:${needAttention?'var(--bad)':'var(--good)'}">${needAttention}</div><div class="lbl">U Baahan Taageero</div></div>
+      </div>
+      <div class="card">
+        <h2>Liiska Macallimiinta</h2>
+        ${rows.length===0 ? `<div class="empty">Wali macallin lama gelin.</div>` :
+        rows.map(r=>{
+          const badge = r.latest===null ? `<span class="badge neutral">Wali lama qiimeyn</span>` : `<span class="badge ${scoreBadgeClass(r.latest)}">${fmt1(r.latest)}% ${r.trend}</span>`;
+          return `<div class="teacher-row" data-open="${r.t.id}" style="cursor:pointer;">
+            <div><div class="name">${escapeHtml(r.t.name)}</div><div class="sub">${escapeHtml(r.t.subject||"")} · ${r.evs.length} qiimeyn</div></div>
+            ${badge}
+          </div>`;
+        }).join("")}
+      </div>
+    `;
+    app.querySelectorAll("[data-open]").forEach(el=>{
+      el.addEventListener("click", ()=>{
+        currentTeacherId = el.dataset.open;
+        document.querySelectorAll("nav.tabs button").forEach(b=>b.classList.remove("active"));
+        document.querySelector('nav.tabs button[data-tab="teachers"]').classList.add("active");
+        activeTab = "teachers"; render();
+      });
+    });
+  }
+
+  function renderTeachers(){
+    app.innerHTML = `
+      <div class="card">
+        <h2>Ku dar Macallin Cusub</h2>
+        <label>Magaca Macallinka</label>
+        <input type="text" id="newTeacherName" placeholder="tusaale: Xasan Cali Maxamed">
+        <label>Maadada (ikhtiyaari)</label>
+        <input type="text" id="newTeacherSubject" placeholder="tusaale: Xisaabta">
+        <button class="btn" id="btnAddTeacher">➕ Ku Dar Macallin</button>
+      </div>
+      <div class="card">
+        <h2>Ku dar Dhowr Macallin Mar Hal Ah</h2>
+        <label>Magacyada (mid kasta xariiq gooni ah)</label>
+        <textarea id="bulkNames" placeholder="Xasan Cali Maxamed&#10;Faadumo Axmed Nuur&#10;..." style="min-height:120px;"></textarea>
+        <button class="btn secondary" id="btnBulkAdd">📋 Ku Dar Dhammaan</button>
+      </div>
+      <div class="card">
+        <h2>Dhammaan Macallimiinta (${teachers.length})</h2>
+        ${teachers.length===0 ? `<div class="empty">Wali macallin lama gelin.</div>` :
+        teachers.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(t=>{
+          const evs = teacherEvals(t.id);
+          const overall = teacherOverallScore(t.id);
+          return `<div class="teacher-row">
+            <div style="cursor:pointer;" data-open="${t.id}">
+              <div class="name">${escapeHtml(t.name)}</div>
+              <div class="sub">${escapeHtml(t.subject||"")} · ${evs.length} qiimeyn</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              ${overall!==null ? `<span class="badge ${scoreBadgeClass(overall)}">${fmt1(overall)}%</span>` : `<span class="badge neutral">—</span>`}
+              <button class="del-x" data-del="${t.id}" title="Tirtir">✕</button>
+            </div>
+          </div>`;
+        }).join("")}
+      </div>
+    `;
+    document.getElementById("btnAddTeacher").addEventListener("click", async ()=>{
+      const name = document.getElementById("newTeacherName").value;
+      const subject = document.getElementById("newTeacherSubject").value;
+      if (!name.trim()){ alert("Fadlan geli magaca macallinka."); return; }
+      const btn = document.getElementById("btnAddTeacher"); btn.disabled = true;
+      try { await addTeacher(name, subject); } finally { btn.disabled = false; }
+    });
+    document.getElementById("btnBulkAdd").addEventListener("click", async ()=>{
+      const raw = document.getElementById("bulkNames").value;
+      const names = raw.split("\n").map(s=>s.trim()).filter(Boolean);
+      if (!names.length){ alert("Fadlan geli ugu yaraan hal magac."); return; }
+      const btn = document.getElementById("btnBulkAdd"); btn.disabled = true; btn.textContent = "Gelinaya...";
+      try { await addTeachersBulk(names); } finally { btn.disabled = false; btn.textContent = "📋 Ku Dar Dhammaan"; }
+    });
+    app.querySelectorAll("[data-open]").forEach(el=>{
+      el.addEventListener("click", ()=>{ currentTeacherId = el.dataset.open; render(); });
+    });
+    app.querySelectorAll("[data-del]").forEach(el=>{
+      el.addEventListener("click", async (ev)=>{
+        ev.stopPropagation();
+        const t = teachers.find(x=>x.id===el.dataset.del);
+        if (confirm(`Ma hubtaa inaad tirtirto ${t?t.name:"macallinkan"} iyo dhammaan qiimeymihiisa?`)) await deleteTeacher(el.dataset.del);
+      });
+    });
+  }
+
+  function teacherLink(t){ return window.location.origin + "/t/" + t.token; }
+
+  function renderTeacherDetail(id){
+    const t = teachers.find(x=>x.id===id);
+    if (!t){ currentTeacherId = null; return renderTeachers(); }
+    const evs = teacherEvals(id);
+    const overall = teacherOverallScore(id);
+    const link = teacherLink(t);
+
+    app.innerHTML = `
+      <button class="backbtn" id="btnBack">← Dib u noqo</button>
+      <div class="card">
+        <h2>${escapeHtml(t.name)}</h2>
+        <div class="sub" style="color:var(--text-dim);font-size:.8rem;margin-bottom:8px;">${escapeHtml(t.subject||"")}</div>
+        ${overall!==null ? `<span class="badge ${scoreBadgeClass(overall)}">Celceliska: ${fmt1(overall)}% · ${overallLevel(overall)}</span>` : `<span class="badge neutral">Wali lama qiimeyn</span>`}
+        <label>Link-ga Macallinka (u dir macallinka)</label>
+        <div class="link-box"><span id="tLink" style="flex:1;">${escapeHtml(link)}</span><button class="btn secondary" id="btnCopy" style="margin:0;padding:7px 12px;">Koobiyee</button></div>
+        <button class="btn gold" id="btnNewEvalFor">📝 Qiimeyn Cusub</button>
+      </div>
+      ${evs.length>=2 ? `<div class="card"><h2>Horumarka</h2><div class="chart-wrap"><canvas id="chart"></canvas></div></div>` : ""}
+      <div class="card">
+        <h2>Taariikhda Qiimeymaha (${evs.length})</h2>
+        ${evs.length===0 ? `<div class="empty">Wali lama qiimeynin.</div>` :
+        evs.slice().reverse().map((e,revIdx)=>{
+          const score = Number(e.score);
+          const m = e.meta || {};
+          const idxAsc = evs.length - 1 - revIdx;
+          const prevEval = idxAsc>0 ? evs[idxAsc-1] : null;
+          return `<div class="eval-item">
+            <div class="row1">
+              <span style="font-weight:700;font-size:.85rem;">${String(e.date).slice(0,10)}${m.class?` · ${escapeHtml(m.class)}`:""}</span>
+              <span style="display:flex;align-items:center;gap:6px;"><span class="badge ${scoreBadgeClass(score)}">${fmt1(score)}%</span><button class="del-x" data-delev="${e.id}" title="Tirtir">✕</button></span>
+            </div>
+            <div class="notes-txt">${overallLevel(score)}${m.supervisorName?` · Kormeere: ${escapeHtml(m.supervisorName)}`:""}</div>
+            <details>
+              <summary>Arag faahfaahinta 10-da su'aal</summary>
+              ${(e.items||[]).map(it=>`<div class="cmp-row" style="display:block;">
+                <b>${escapeHtml(it.title)}</b> — ${it.rating}/5
+                ${it.comment?`<div class="notes-txt">💬 ${escapeHtml(it.comment)}</div>`:""}
+              </div>`).join("")}
+              ${m.strengths?`<div class="notes-txt"><b>Waxyaabaha wanaagsan:</b> ${escapeHtml(m.strengths)}</div>`:""}
+              ${m.improvements?`<div class="notes-txt"><b>U baahan horumarinta:</b> ${escapeHtml(m.improvements)}</div>`:""}
+              ${m.recommendations?`<div class="notes-txt"><b>Talooyinka:</b> ${escapeHtml(m.recommendations)}</div>`:""}
+            </details>
+            ${prevEval ? `<details><summary>📊 Isbarbardhig (vs ${String(prevEval.date).slice(0,10)})</summary>${comparisonHtml(prevEval, e)}</details>` : ""}
+          </div>`;
+        }).join("")}
+      </div>
+    `;
+    document.getElementById("btnBack").addEventListener("click", ()=>{ currentTeacherId = null; render(); });
+    document.getElementById("btnCopy").addEventListener("click", async ()=>{
+      try { await navigator.clipboard.writeText(link); document.getElementById("btnCopy").textContent = "✓ La koobiyeeyay"; }
+      catch(e){ window.prompt("Koobiyee link-ga:", link); }
+    });
+    document.getElementById("btnNewEvalFor").addEventListener("click", ()=>{
+      preselectTeacher = id; currentTeacherId = null; activeTab = "newEval";
+      document.querySelectorAll("nav.tabs button").forEach(b=>b.classList.toggle("active", b.dataset.tab==="newEval"));
+      render();
+    });
+    app.querySelectorAll("[data-delev]").forEach(el=>{
+      el.addEventListener("click", async ()=>{
+        if (confirm("Ma hubtaa inaad tirtirto qiimeyntan?")) await deleteEvaluation(el.dataset.delev);
+      });
+    });
+    if (chartInstance){ chartInstance.destroy(); chartInstance = null; }
+    if (evs.length>=2 && window.Chart){
+      const cssVal = getComputedStyle(document.documentElement);
+      const textColor = cssVal.getPropertyValue("--text").trim()||"#333";
+      const gridColor = cssVal.getPropertyValue("--border").trim()||"#ddd";
+      chartInstance = new Chart(document.getElementById("chart"), {
+        type:"line",
+        data:{ labels: evs.map(e=>String(e.date).slice(0,10)),
+          datasets:[{ label:"Celceliska (%)", data: evs.map(e=>Number(e.score)), borderColor:"#3550c9", backgroundColor:"#3550c9", tension:.3, pointRadius:4, borderWidth:2 }] },
+        options:{ responsive:true, maintainAspectRatio:false,
+          scales:{ y:{min:0,max:100,ticks:{color:textColor,stepSize:20},grid:{color:gridColor}}, x:{ticks:{color:textColor},grid:{color:gridColor}} },
+          plugins:{ legend:{labels:{color:textColor,boxWidth:10,font:{size:10}}} } }
+      });
+    }
+  }
+
+  function renderNewEval(){
+    if (!teachers.length){
+      app.innerHTML = `<div class="card"><div class="empty">Marka hore ku dar macallimiin tabta "Macallimiinta".</div></div>`;
+      return;
+    }
+    evalState = {};
+    const today = new Date().toISOString().slice(0,10);
+    app.innerHTML = `
+      <div class="card">
+        <h2>Qiimeyn Cusub</h2>
+        <label>Macallinka</label>
+        <select id="evTeacher">
+          ${teachers.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(t=>`<option value="${t.id}" ${t.id===preselectTeacher?"selected":""}>${escapeHtml(t.name)}</option>`).join("")}
+        </select>
+        <label>Taariikhda</label><input type="date" id="evDate" value="${today}">
+        <label>Dugsiga</label><input type="text" id="evSchool" value="Dugsiga Howlwadaag Sare">
+        <label>Fasalka</label><input type="text" id="evClass" placeholder="tusaale: Fasalka 8aad">
+        <label>Magaca Kormeeraha</label><input type="text" id="evSupervisor">
+        <div class="scale-legend">5 = Aad u wanaagsan · 4 = Wanaagsan · 3 = Dhexdhexaad · 2 = Daciif · 1 = Aad u daciif</div>
+        <div class="progress-bar-wrap"><div class="progress-bar" id="evProgress" style="width:0%"></div></div>
+        <div id="evProgressTxt" style="font-size:.75rem;color:var(--text-dim);">0 / ${TOTAL_ITEMS} la buuxiyay</div>
+      </div>
+      ${CRITERIA.map(c=>`
+        <div class="qitem" data-key="${c.key}">
+          <div class="qitem-title">${escapeHtml(c.title)}</div>
+          <div class="qitem-text">${escapeHtml(c.text)}</div>
+          <div class="rate-row">${[1,2,3,4,5].map(r=>`<button type="button" class="rate-btn" data-r="${r}">${r}</button>`).join("")}</div>
+          <input type="text" class="qitem-comment" placeholder="Faalo (ikhtiyaari)">
+        </div>`).join("")}
+      <div class="card">
+        <h2>Gunaanad</h2>
+        <label>Waxyaabaha wanaagsan</label><textarea id="evStrengths"></textarea>
+        <label>U baahan horumarinta</label><textarea id="evImprovements"></textarea>
+        <label>Talooyinka Kormeeraha</label><textarea id="evRecommendations"></textarea>
+        <label>Meesha la raadraaco (Follow-up)</label><input type="text" id="evFuArea">
+        <label>Tallaabada la qaadayo</label><input type="text" id="evFuAction">
+        <label>Taariikhda raadraaca</label><input type="date" id="evFuDate">
+        <label>Saxiixa Macallinka (magac)</label><input type="text" id="evTSign">
+        <label>Saxiixa Kormeeraha (magac)</label><input type="text" id="evSSign">
+        <button class="btn gold" id="btnSaveEval" style="width:100%;">💾 Kaydi Qiimeynta</button>
+      </div>
+    `;
+
+    function updateProgress(){
+      const n = Object.values(evalState).filter(v=>v.rating).length;
+      document.getElementById("evProgress").style.width = (n/TOTAL_ITEMS*100)+"%";
+      document.getElementById("evProgressTxt").textContent = `${n} / ${TOTAL_ITEMS} la buuxiyay`;
+    }
+    app.querySelectorAll(".qitem").forEach(box=>{
+      const key = box.dataset.key;
+      evalState[key] = { rating:0, comment:"" };
+      box.querySelectorAll(".rate-btn").forEach(b=>{
+        b.addEventListener("click", ()=>{
+          evalState[key].rating = Number(b.dataset.r);
+          box.querySelectorAll(".rate-btn").forEach(x=>x.classList.toggle("sel", x===b));
+          updateProgress();
+        });
+      });
+      box.querySelector(".qitem-comment").addEventListener("input", e=>{ evalState[key].comment = e.target.value; });
+    });
+
+    document.getElementById("btnSaveEval").addEventListener("click", async ()=>{
+      const missing = CRITERIA.filter(c=>!evalState[c.key].rating);
+      if (missing.length){ alert("Fadlan buuxi dhammaan 10-ka su'aalood. Ka dhiman: " + missing.map(m=>m.title.split(".")[0]).join(", ")); return; }
+      const v = id => document.getElementById(id).value;
+      const items = CRITERIA.map(c=>({ key:c.key, title:c.title, text:c.text, rating:evalState[c.key].rating, comment:evalState[c.key].comment }));
+      const meta = { school:v("evSchool"), class:v("evClass"), supervisorName:v("evSupervisor"), strengths:v("evStrengths"), improvements:v("evImprovements"),
+        recommendations:v("evRecommendations"), followupArea:v("evFuArea"), followupAction:v("evFuAction"), followupDate:v("evFuDate"),
+        teacherSignature:v("evTSign"), supervisorSignature:v("evSSign") };
+      const teacherId = v("evTeacher");
+      const btn = document.getElementById("btnSaveEval"); btn.disabled = true;
+      try {
+        const r = await addEvaluation(teacherId, v("evDate"), items, meta);
+        await loadAll();
+        alert(`✅ Qiimeynta waa la kaydiyay — natiijo: ${fmt1(r.score)}%`);
+        preselectTeacher = null;
+        currentTeacherId = teacherId; activeTab = "teachers";
+        document.querySelectorAll("nav.tabs button").forEach(b=>b.classList.toggle("active", b.dataset.tab==="teachers"));
+        render();
+      } catch(e){ alert("Khalad: " + e.message); }
+      finally { btn.disabled = false; }
+    });
+  }
+
+  function renderReports(){
+    if (!teachers.length){
+      app.innerHTML = `<div class="card"><div class="empty">Wali macallin lama gelin.</div></div>`;
+      return;
+    }
+    app.innerHTML = `
+      <div class="card no-print">
+        <h2>Warbixin</h2>
+        <label>Macallinka</label>
+        <select id="rpTeacher">${teachers.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(t=>`<option value="${t.id}">${escapeHtml(t.name)}</option>`).join("")}</select>
+        <label>Qiimeynta</label>
+        <select id="rpEval"></select>
+        <button class="btn gold" id="btnPrint">🖨️ Daabac / Save PDF</button>
+      </div>
+      <div id="reportArea"></div>
+    `;
+    const selT = document.getElementById("rpTeacher");
+    const selE = document.getElementById("rpEval");
+
+    function fillEvals(){
+      const evs = teacherEvals(selT.value).slice().reverse();
+      selE.innerHTML = evs.length ? evs.map(e=>`<option value="${e.id}">${String(e.date).slice(0,10)} — ${fmt1(Number(e.score))}%</option>`).join("") : `<option value="">Wali qiimeyn ma jirto</option>`;
+      draw();
+    }
+    function draw(){
+      const area = document.getElementById("reportArea");
+      const t = teachers.find(x=>x.id===selT.value);
+      const evs = teacherEvals(selT.value);
+      const e = evs.find(x=>x.id===selE.value);
+      if (!t || !e){ area.innerHTML = `<div class="empty">Wali qiimeyn ma jirto macallinkan.</div>`; return; }
+      const m = e.meta || {};
+      const score = Number(e.score);
+      const idx = evs.findIndex(x=>x.id===e.id);
+      const prev = idx>0 ? evs[idx-1] : null;
+      area.innerHTML = `
+        <div class="report-header">
+          <img src="/logo.jpg" alt="logo">
+          <div><h2 style="margin:0;">${escapeHtml(m.school||"Dugsiga Howlwadaag Sare")}</h2><div>Warbixinta Qiimeynta Macallinka</div></div>
+        </div>
+        <table>
+          <tr><th>Macallinka</th><td>${escapeHtml(t.name)}</td><th>Maadada</th><td>${escapeHtml(t.subject||"—")}</td></tr>
+          <tr><th>Taariikhda</th><td>${String(e.date).slice(0,10)}</td><th>Fasalka</th><td>${escapeHtml(m.class||"—")}</td></tr>
+          <tr><th>Kormeeraha</th><td>${escapeHtml(m.supervisorName||"—")}</td><th>Natiijada</th><td><b>${fmt1(score)}%</b> — ${overallLevel(score)}</td></tr>
+        </table>
+        <h3>Qiimeynta 10-ka Qodob</h3>
+        <table>
+          <tr><th>#</th><th>Qodobka</th><th>Qiimo (1–5)</th><th>Faalo</th></tr>
+          ${(e.items||[]).map((it,i)=>`<tr><td>${i+1}</td><td>${escapeHtml(it.title.replace(/^\d+\.\s*/,""))}</td><td style="text-align:center;"><b>${it.rating}</b></td><td>${escapeHtml(it.comment||"")}</td></tr>`).join("")}
+        </table>
+        ${m.strengths?`<h3>Waxyaabaha wanaagsan</h3><p>${escapeHtml(m.strengths)}</p>`:""}
+        ${m.improvements?`<h3>U baahan horumarinta</h3><p>${escapeHtml(m.improvements)}</p>`:""}
+        ${m.recommendations?`<h3>Talooyinka Kormeeraha</h3><p>${escapeHtml(m.recommendations)}</p>`:""}
+        ${(m.followupArea||m.followupAction||m.followupDate)?`<h3>Raadraac (Follow-up)</h3>
+          <table><tr><th>Meesha</th><th>Tallaabada</th><th>Taariikhda</th></tr>
+          <tr><td>${escapeHtml(m.followupArea||"—")}</td><td>${escapeHtml(m.followupAction||"—")}</td><td>${escapeHtml(m.followupDate||"—")}</td></tr></table>`:""}
+        ${prev?`<h3>Isbarbardhig (vs ${String(prev.date).slice(0,10)})</h3><div style="color:#111;">${comparisonHtml(prev, e)}</div>`:""}
+        <table style="margin-top:24px;">
+          <tr><th>Saxiixa Macallinka</th><th>Saxiixa Kormeeraha</th></tr>
+          <tr><td style="height:48px;">${escapeHtml(m.teacherSignature||"")}</td><td>${escapeHtml(m.supervisorSignature||"")}</td></tr>
+        </table>
+      `;
+    }
+    selT.addEventListener("change", fillEvals);
+    selE.addEventListener("change", draw);
+    document.getElementById("btnPrint").addEventListener("click", ()=>window.print());
+    fillEvals();
+  }
+
+  boot();
+})();
+</script>
+</body>
+</html>
