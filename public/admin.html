@@ -107,9 +107,9 @@
 </head>
 <body>
 <header>
-  <img class="logo" src="/logo.jpg" alt="Dugsiga Howlwadaag Sare">
+  <img class="logo" src="/logo.jpg" alt="Darul Huda Primary and Secondary School">
   <div class="htext">
-    <h1>Dugsiga Howlwadaag Sare</h1>
+    <h1>Darul Huda Primary and Secondary School</h1>
     <p>Maamulka — Qiimeynta Macallimiinta</p>
   </div>
 </header>
@@ -505,7 +505,7 @@
           ${teachers.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(t=>`<option value="${t.id}" ${t.id===preselectTeacher?"selected":""}>${escapeHtml(t.name)}</option>`).join("")}
         </select>
         <label>Taariikhda</label><input type="date" id="evDate" value="${today}">
-        <label>Dugsiga</label><input type="text" id="evSchool" value="Dugsiga Howlwadaag Sare">
+        <label>Dugsiga</label><input type="text" id="evSchool" value="Darul Huda Primary and Secondary School">
         <label>Fasalka</label><input type="text" id="evClass" placeholder="tusaale: Fasalka 8aad">
         <label>Magaca Kormeeraha</label><input type="text" id="evSupervisor">
         <div class="scale-legend">5 = Aad u wanaagsan · 4 = Wanaagsan · 3 = Dhexdhexaad · 2 = Daciif · 1 = Aad u daciif</div>
@@ -611,7 +611,7 @@
       area.innerHTML = `
         <div class="report-header">
           <img src="/logo.jpg" alt="logo">
-          <div><h2 style="margin:0;">${escapeHtml(m.school||"Dugsiga Howlwadaag Sare")}</h2><div>Warbixinta Qiimeynta Macallinka</div></div>
+          <div><h2 style="margin:0;">${escapeHtml(m.school||"Darul Huda Primary and Secondary School")}</h2><div>Warbixinta Qiimeynta Macallinka</div></div>
         </div>
         <table>
           <tr><th>Macallinka</th><td>${escapeHtml(t.name)}</td><th>Maadada</th><td>${escapeHtml(t.subject||"—")}</td></tr>
