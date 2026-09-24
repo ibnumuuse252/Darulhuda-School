@@ -1,1 +1,220 @@
+<!DOCTYPE html>
+<html lang="so">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Xogtayda — Qiimeynta</title>
+<style>
+  :root {
+    --bg:#f2f4f8; --surface:#fff; --surface-2:#eef1f6; --text:#1a2035; --text-dim:#5b6478;
+    --border:#dde2ec; --navy:#0d1b5e; --navy-dark:#081142; --gold:#f2b705;
+    --good:#1e8e5a; --warn:#c98a13; --bad:#c0392b;
+    --shadow:0 1px 3px rgba(13,27,94,.10),0 1px 2px rgba(13,27,94,.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#0f1320; --surface:#161b2c; --surface-2:#1d2338; --text:#e7ebf5; --text-dim:#8f97b3;
+      --border:#2a3150; --navy:#3550c9; --navy-dark:#1a2560; --gold:#f2c94c;
+      --good:#3fae7a; --warn:#e0ac3f; --bad:#e0685b;
+      --shadow:0 1px 3px rgba(0,0,0,.4),0 1px 2px rgba(0,0,0,.3); }
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif; font-size:15px; }
+  header { padding:18px 16px; background:linear-gradient(135deg,var(--navy-dark),var(--navy)); color:#fff; display:flex; align-items:center; gap:12px; }
+  header img.logo { width:46px; height:46px; border-radius:50%; object-fit:cover; box-shadow:0 0 0 2px var(--gold); flex-shrink:0; }
+  header h1 { margin:0 0 2px; font-size:1.05rem; }
+  header p { margin:0; font-size:.75rem; opacity:.85; }
+  main { padding:14px; max-width:700px; margin:0 auto; }
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:16px; margin-bottom:14px; box-shadow:var(--shadow); }
+  .card h2 { margin:0 0 4px; font-size:1.1rem; color:var(--navy); }
+  @media (prefers-color-scheme: dark) { .card h2 { color:var(--gold); } }
+  .sub { color:var(--text-dim); font-size:.85rem; margin-bottom:10px; }
+  .badge { display:inline-block; padding:4px 12px; border-radius:20px; font-size:.85rem; font-weight:700; color:#fff; }
+  .badge.good { background:var(--good); } .badge.warn { background:var(--warn); } .badge.bad { background:var(--bad); } .badge.neutral { background:var(--text-dim); }
+  .compare-note { font-size:.85rem; padding:10px 12px; border-radius:10px; margin-top:12px; }
+  .compare-note.ok { background:rgba(30,142,90,.12); color:var(--good); }
+  .compare-note.pending { background:rgba(201,138,19,.12); color:var(--warn); }
+  .chart-wrap { position:relative; height:220px; margin-top:14px; }
+  .eval-item { border:1px solid var(--border); border-radius:12px; padding:12px; margin-bottom:10px; background:var(--surface-2); }
+  .eval-item .row1 { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+  .notes-txt { font-size:.83rem; color:var(--text-dim); margin-top:6px; white-space:pre-wrap; }
+  .empty, .loading { text-align:center; padding:40px 10px; color:var(--text-dim); }
+  .stat-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:14px; }
+  .stat { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:14px; text-align:center; box-shadow:var(--shadow); }
+  .stat .num { font-size:1.5rem; font-weight:800; color:var(--navy); }
+  @media (prefers-color-scheme: dark) { .stat .num { color:var(--gold); } }
+  .stat .lbl { font-size:.72rem; color:var(--text-dim); }
+  details { margin-top:8px; }
+  summary { font-size:.8rem; color:var(--navy); cursor:pointer; font-weight:600; }
+  @media (prefers-color-scheme: dark) { summary { color:var(--gold); } }
+  .qrow { padding:9px 0; border-bottom:1px solid var(--border); font-size:.82rem; }
+  .qrow:last-child { border-bottom:none; }
+  .qrow .qtitle { font-weight:700; margin-bottom:3px; }
+  .qtag { display:inline-block; font-size:.72rem; font-weight:800; padding:2px 9px; border-radius:10px; color:#fff; }
+  .qtag.r5 { background:var(--good); } .qtag.r4 { background:#5aa96d; } .qtag.r3 { background:var(--warn); }
+  .qtag.r2 { background:#d98a4c; } .qtag.r1 { background:var(--bad); }
+  .qcomment { color:var(--text-dim); font-size:.78rem; margin-top:4px; }
+  .meta-block { font-size:.82rem; margin-top:6px; }
+  .meta-block b { display:block; margin-top:8px; font-size:.78rem; color:var(--text-dim); }
+  .cmp-row { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border); font-size:.8rem; gap:8px; }
+  .cmp-row:last-child { border-bottom:none; }
+  .cmp-title { flex:1; }
+  .cmp-vals { display:flex; align-items:center; gap:6px; font-weight:800; white-space:nowrap; }
+  .cmp-up { color:var(--good); } .cmp-down { color:var(--bad); } .cmp-same { color:var(--text-dim); }
+  .cmp-summary { font-size:.82rem; padding:10px 12px; border-radius:10px; margin-bottom:8px; background:var(--surface-2); }
+</style>
+</head>
+<body>
+<header>
+  <img class="logo" src="/logo.jpg" alt="Dugsiga Howlwadaag Sare">
+  <div>
+    <h1>👋 Xogtayda ee Qiimeynta</h1>
+    <p>Dugsiga Howlwadaag Sare — horumarkaaga kormeerka</p>
+  </div>
+</header>
+<main id="app"><div class="loading">Soo dejinaya...</div></main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+(function(){
+  "use strict";
+
+  const CRITERIA_KEYS = ["prep","scheme","agabka","habka","fahamka","fasalka","qaybgal","ixtiraam","qiimeyn","jawaab"];
+
+  function fmt1(n){ return (Math.round(n*10)/10).toFixed(1); }
+  function overallLevel(pct){
+    if (pct>=90) return "Heer Sare";
+    if (pct>=70) return "Wanaagsan";
+    if (pct>=50) return "La Aqbali Karo";
+    if (pct>=30) return "U Baahan Horumarin";
+    return "U Baahan Taageero Degdeg ah";
+  }
+  function scoreBadgeClass(pct){ if (pct>=70) return "good"; if (pct>=50) return "warn"; return "bad"; }
+  function escapeHtml(s){ return String(s||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m])); }
+  function ratingLabel(r){ return r; }
+
+  function compareItems(prevEval, currEval){
+    const prevItems = prevEval.items || [];
+    const currItems = currEval.items || [];
+    return currItems.map(cur=>{
+      const p = prevItems.find(it=>it.key===cur.key);
+      const pr = p ? Number(p.rating) : null;
+      const cr = Number(cur.rating);
+      let status = "same";
+      if (pr!==null){ if (cr>pr) status="up"; else if (cr<pr) status="down"; }
+      return { title:cur.title, prev:pr, curr:cr, delta:(pr!==null)?cr-pr:null, status };
+    });
+  }
+  function comparisonHtml(prevEval, currEval){
+    const cmp = compareItems(prevEval, currEval);
+    const up = cmp.filter(c=>c.status==="up").length;
+    const down = cmp.filter(c=>c.status==="down").length;
+    const same = cmp.filter(c=>c.status==="same").length;
+    let summaryText;
+    if (up > down) summaryText = `📈 Horumar guud ayaad sameysay — ${up} qodob kor u kacay, ${down} hoos u dhacay, ${same} isku mid ahaaday.`;
+    else if (down > up) summaryText = `📉 Hoos u dhac ayaa dhacay — ${down} qodob hoos u dhacay, ${up} kor u kacay, ${same} isku mid ahaaday.`;
+    else summaryText = `➖ Isbeddel weyn lama arag — ${up} kor u kacay, ${down} hoos u dhacay, ${same} isku mid ahaaday.`;
+    const rows = cmp.map(c=>{
+      let cls="cmp-same", arrow="▬", note="Isku mid";
+      if (c.status==="up"){ cls="cmp-up"; arrow="▲"; note=`Horumar (+${c.delta})`; }
+      else if (c.status==="down"){ cls="cmp-down"; arrow="▼"; note=`Hoos u dhac (${c.delta})`; }
+      return `<div class="cmp-row"><div class="cmp-title">${escapeHtml(c.title)}</div><div class="cmp-vals ${cls}">${c.prev!==null?c.prev:"—"} → ${c.curr} ${arrow} <span style="font-weight:600;font-size:.72rem;">${note}</span></div></div>`;
+    }).join("");
+    return `<div class="cmp-summary">${summaryText}</div>${rows}`;
+  }
+
+  const app = document.getElementById("app");
+  const token = window.location.pathname.split("/").filter(Boolean).pop();
+
+  async function load(){
+    try {
+      const res = await fetch("/api/public/" + encodeURIComponent(token));
+      if (!res.ok){
+        app.innerHTML = `<div class="card"><div class="empty">⚠️ Link-gan sax ma aha ama waa la tirtiray. La xiriir xafiiska waxbarashada.</div></div>`;
+        return;
+      }
+      const data = await res.json();
+      render(data.teacher, data.evaluations);
+    } catch(e){
+      app.innerHTML = `<div class="card"><div class="empty">⚠️ Khalad ayaa dhacay. Isku day mar kale.</div></div>`;
+    }
+  }
+
+  function render(teacher, evs){
+    evs = evs.slice().sort((a,b)=>new Date(a.date)-new Date(b.date));
+    const overall = evs.length ? evs.reduce((a,e)=>a+Number(e.score),0)/evs.length : null;
+    const latest = evs.length ? Number(evs[evs.length-1].score) : null;
+
+    app.innerHTML = `
+      <div class="card">
+        <h2>${escapeHtml(teacher.name)}</h2>
+        <div class="sub">${escapeHtml(teacher.subject||"")}</div>
+        ${overall!==null ? `<span class="badge ${scoreBadgeClass(overall)}">Celceliska Guud: ${fmt1(overall)}% · ${overallLevel(overall)}</span>` : `<span class="badge neutral">Wali lama qiimeyn</span>`}
+        ${evs.length<3 ? `<div class="compare-note pending">📌 Waxaad heysaa ${evs.length} qiimeyn. Ugu yaraan 3 ayaa loo baahan yahay si aad si buuxda u aragto isbarbardhigga horumarkaaga.</div>` :
+          `<div class="compare-note ok">✅ ${evs.length} qiimeyn ayaad heysaa — jaantuska hoose wuxuu kuu tusayaa horumarkaaga.</div>`}
+      </div>
+
+      ${evs.length ? `
+      <div class="stat-grid">
+        <div class="stat"><div class="num">${evs.length}</div><div class="lbl">Tirada Qiimeymaha</div></div>
+        <div class="stat"><div class="num">${latest!==null?fmt1(latest):"—"}%</div><div class="lbl">Qiimeyntii Ugu Dambeysay</div></div>
+      </div>` : ""}
+
+      ${evs.length>=2 ? `<div class="card"><h2>Horumarkaaga</h2><div class="chart-wrap"><canvas id="chart"></canvas></div></div>` : ""}
+
+      <div class="card">
+        <h2>Taariikhda Qiimeymaha</h2>
+        ${evs.length===0 ? `<div class="empty">Wali lama kuu qiimeynin.</div>` :
+        evs.slice().reverse().map((e,revIdx)=>{
+          const score = Number(e.score);
+          const m = e.meta || {};
+          const idxAsc = evs.length - 1 - revIdx;
+          const prevEval = idxAsc>0 ? evs[idxAsc-1] : null;
+          return `<div class="eval-item">
+            <div class="row1"><span style="font-weight:700;font-size:.85rem;">${e.date}${m.class?` · ${escapeHtml(m.class)}`:""}</span><span class="badge ${scoreBadgeClass(score)}">${fmt1(score)}%</span></div>
+            <div class="notes-txt">${overallLevel(score)}${m.supervisorName?` · Kormeere: ${escapeHtml(m.supervisorName)}`:""}</div>
+            <details>
+              <summary>Arag faahfaahinta 10-da su'aal</summary>
+              ${(e.items||[]).map(it=>`<div class="qrow">
+                <div class="qtitle">${escapeHtml(it.title)}</div>
+                <div style="margin-bottom:4px;color:var(--text-dim);">${escapeHtml(it.text)}</div>
+                <span class="qtag r${it.rating}">${it.rating}/5</span>
+                ${it.comment ? `<div class="qcomment">💬 ${escapeHtml(it.comment)}</div>` : ""}
+              </div>`).join("")}
+              ${(m.strengths||m.improvements||m.recommendations) ? `<div class="meta-block">
+                ${m.strengths?`<b>Waxyaabaha wanaagsan:</b>${escapeHtml(m.strengths)}`:""}
+                ${m.improvements?`<b>U baahan horumarinta:</b>${escapeHtml(m.improvements)}`:""}
+                ${m.recommendations?`<b>Talooyinka Kormeeraha:</b>${escapeHtml(m.recommendations)}`:""}
+              </div>`:""}
+            </details>
+            ${prevEval ? `<details><summary>📊 Isbarbardhigga qodob-qodobka (vs ${prevEval.date})</summary>${comparisonHtml(prevEval, e)}</details>` : ""}
+          </div>`;
+        }).join("")}
+      </div>
+    `;
+
+    if (evs.length>=2 && window.Chart){
+      const ctx = document.getElementById("chart");
+      const cssVal = getComputedStyle(document.documentElement);
+      const textColor = cssVal.getPropertyValue('--text').trim()||'#333';
+      const gridColor = cssVal.getPropertyValue('--border').trim()||'#ddd';
+      new Chart(ctx, {
+        type:"line",
+        data:{
+          labels: evs.map(e=>e.date),
+          datasets: [
+            { label:"Celceliska Guud (%)", data: evs.map(e=>Number(e.score)), borderColor:"#0d1b5e", backgroundColor:"#0d1b5e", tension:.3, pointRadius:4, borderWidth:2 }
+          ]
+        },
+        options:{ responsive:true, maintainAspectRatio:false,
+          scales:{ y:{min:0,max:100,ticks:{color:textColor,stepSize:20},grid:{color:gridColor}}, x:{ticks:{color:textColor},grid:{color:gridColor}} },
+          plugins:{ legend:{labels:{color:textColor,boxWidth:10,font:{size:10}}} } }
+      });
+    }
+  }
+
+  load();
+})();
+</script>
+</body>
+</html>
 
