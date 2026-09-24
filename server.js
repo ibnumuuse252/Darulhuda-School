@@ -10,17 +10,27 @@ const app = express();
 app.use(express.json());
 
 // ---------- Database ----------
-if (!process.env.DATABASE_URL) {
-  console.warn(
-    "⚠️  DATABASE_URL lama helin. Ku dar Postgres plugin Railway-ga oo ku xidh variable-ka DATABASE_URL adeeggan."
-  );
+// Raadi xiriirka database-ka magacyo kala duwan (Railway wuxuu isticmaali karaa mid kasta)
+function resolveDbUrl() {
+  const e = process.env;
+  const direct = e.DATABASE_URL || e.DATABASE_PRIVATE_URL || e.POSTGRES_URL || e.DATABASE_PUBLIC_URL;
+  if (direct && !direct.includes("${{")) return direct.trim();
+  if (e.PGHOST && e.PGUSER && e.PGPASSWORD && e.PGDATABASE) {
+    return `postgresql://${encodeURIComponent(e.PGUSER)}:${encodeURIComponent(e.PGPASSWORD)}@${e.PGHOST}:${e.PGPORT || 5432}/${e.PGDATABASE}`;
+  }
+  return "";
+}
+const DB_URL = resolveDbUrl();
+let dbReady = false;
+let dbError = "";
+
+if (!DB_URL) {
+  console.warn("⚠️  DATABASE_URL lama helin. Fur boggaaga si aad u aragto tilmaamaha saxda ah.");
 }
 
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.DATABASE_URL && process.env.DATABASE_URL.includes("railway")
-    ? { rejectUnauthorized: false }
-    : false,
+  connectionString: DB_URL || undefined,
+  ssl: DB_URL && /railway|rlwy\.net/.test(DB_URL) ? { rejectUnauthorized: false } : false,
 });
 
 async function initDb() {
@@ -51,9 +61,75 @@ async function initDb() {
   await pool.query(`ALTER TABLE evaluations DROP COLUMN IF EXISTS prep`);
   await pool.query(`ALTER TABLE evaluations DROP COLUMN IF EXISTS classroom`);
   await pool.query(`ALTER TABLE evaluations DROP COLUMN IF EXISTS assessment`);
+  dbReady = true;
+  dbError = "";
   console.log("✅ Database ready");
 }
-initDb().catch((e) => console.error("DB init error:", e));
+async function initDbWithRetry() {
+  if (!DB_URL) return;
+  try {
+    await initDb();
+  } catch (e) {
+    dbError = String(e && e.message ? e.message : e);
+    console.error("DB init error:", dbError, "— dib ayaan isku dayayaa 5 ilbiriqsi kadib");
+    setTimeout(initDbWithRetry, 5000);
+  }
+}
+initDbWithRetry();
+
+// ---------- Bog tilmaam ah haddii wax maqan yihiin ----------
+function setupProblem() {
+  if (!DB_URL) {
+    return {
+      title: "DATABASE_URL ma jiro",
+      steps: [
+        "Railway → project-kaaga → guji sanduuqa <b>Postgres</b> → <b>Variables</b> → koobiyee qiimaha <b>DATABASE_URL</b>.",
+        "Guji sanduuqa <b>Darulhuda-School</b> → <b>Variables</b> → <b>Raw Editor</b>.",
+        "Ku dar xariiq cusub: <code>DATABASE_URL=</code> oo ku dhejii URL-ka aad koobiyeysay, kadibna <b>Update Variables</b> → <b>Deploy</b>.",
+        "Haddii Postgres uusan jirin: <b>+ Create → Database → PostgreSQL</b>."
+      ],
+    };
+  }
+  if (!process.env.ADMIN_PASSWORD) {
+    return {
+      title: "ADMIN_PASSWORD ma jiro",
+      steps: [
+        "Railway → sanduuqa <b>Darulhuda-School</b> → <b>Variables</b> → <b>New Variable</b>.",
+        "Magac: <code>ADMIN_PASSWORD</code>, qiime: erayga sirta ah ee aad rabto. Kadibna <b>Deploy</b>."
+      ],
+    };
+  }
+  if (!dbReady) {
+    return {
+      title: "Database-ka wali lama xidhin",
+      steps: [
+        "Server-ku wuu isku dayayaa inuu ku xidhmo database-ka. Sug 10 ilbiriqsi oo dib u cusbooneysii bogga.",
+        "Haddii uu sii socdo, hubi in URL-ka database-ka uu sax yahay (ha ka koobiyeynin meel aan dhammaystirneyn).",
+        "Khaladka: <code>" + String(dbError || "aan la aqoon").replace(/[<>&]/g, "") + "</code>"
+      ],
+    };
+  }
+  return null;
+}
+
+app.get("/health", (req, res) => {
+  res.json({
+    ok: !setupProblem(),
+    dbUrlFound: !!DB_URL,
+    adminPasswordSet: !!process.env.ADMIN_PASSWORD,
+    dbReady,
+    dbError,
+  });
+});
+
+app.use((req, res, next) => {
+  const p = setupProblem();
+  if (!p || req.path === "/health" || req.path === "/logo.jpg") return next();
+  if (req.path.startsWith("/api/")) return res.status(503).json({ error: p.title });
+  res.status(503).send(`<!doctype html><html lang="so"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Habayn baa loo baahan yahay</title>
+<style>body{font-family:system-ui,sans-serif;background:#f3f4f8;margin:0;padding:20px;color:#1a1f36}.c{max-width:560px;margin:30px auto;background:#fff;border-radius:14px;padding:22px;box-shadow:0 2px 12px #0002}h1{font-size:1.15rem;color:#b3261e;margin-top:0}li{margin:10px 0;line-height:1.5}code{background:#eef0f7;padding:2px 6px;border-radius:5px;word-break:break-all}</style></head>
+<body><div class="c"><h1>⚠️ ${p.title}</h1><ol>${p.steps.map((x) => "<li>" + x + "</li>").join("")}</ol><p style="color:#666;font-size:.85rem">Marka aad dhammayso, dib u cusbooneysii bogga. Hubin: <code>/health</code></p></div></body></html>`);
+});
 
 // ---------- Admin auth ----------
 // Fudud: password ayaa lagu xaqiijiyaa header-ka x-admin-password mar walba.
