@@ -112,6 +112,7 @@
     <h1>Darul Huda Primary and Secondary School</h1>
     <p>Maamulka — Qiimeynta Macallimiinta</p>
   </div>
+  <button id="logoutBtn" style="display:none;margin-left:auto;background:transparent;border:1.5px solid var(--gold);color:#fff;padding:7px 14px;border-radius:8px;font-size:.8rem;cursor:pointer;white-space:nowrap;">Ka bax</button>
 </header>
 
 <div id="loginScreen" style="display:none;">
@@ -181,11 +182,23 @@
     document.getElementById("loginScreen").style.display = "block";
     document.getElementById("appShell").style.display = "none";
     document.getElementById("loginErr").textContent = err || "";
+    document.getElementById("logoutBtn").style.display = "none";
   }
   function showApp(){
     document.getElementById("loginScreen").style.display = "none";
     document.getElementById("appShell").style.display = "block";
+    document.getElementById("logoutBtn").style.display = "inline-block";
   }
+
+  document.getElementById("logoutBtn").addEventListener("click", ()=>{
+    if (!confirm("Ma hubtaa inaad ka baxdo maamulka?")) return;
+    localStorage.removeItem(PW_KEY);
+    document.getElementById("pwInput").value = "";
+    teachers = []; evaluations = []; currentTeacherId = null;
+    activeTab = "dashboard";
+    document.querySelectorAll("nav.tabs button").forEach(b=>b.classList.toggle("active", b.dataset.tab==="dashboard"));
+    showLogin();
+  });
 
   document.getElementById("loginBtn").addEventListener("click", async ()=>{
     const pw = document.getElementById("pwInput").value;
@@ -504,6 +517,11 @@
         <select id="evTeacher">
           ${teachers.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(t=>`<option value="${t.id}" ${t.id===preselectTeacher?"selected":""}>${escapeHtml(t.name)}</option>`).join("")}
         </select>
+        <label>Maadada</label>
+        <select id="evSubject">
+          ${(()=>{ const subs=[...new Set(teachers.map(t=>(t.subject||"").trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+            return subs.map(s=>`<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join(""); })()}
+        </select>
         <label>Taariikhda</label><input type="date" id="evDate" value="${today}">
         <label>Dugsiga</label><input type="text" id="evSchool" value="Darul Huda Primary and Secondary School">
         <label>Fasalka</label><input type="text" id="evClass" placeholder="tusaale: Fasalka 8aad">
@@ -524,14 +542,20 @@
         <label>Waxyaabaha wanaagsan</label><textarea id="evStrengths"></textarea>
         <label>U baahan horumarinta</label><textarea id="evImprovements"></textarea>
         <label>Talooyinka Kormeeraha</label><textarea id="evRecommendations"></textarea>
-        <label>Meesha la raadraaco (Follow-up)</label><input type="text" id="evFuArea">
-        <label>Tallaabada la qaadayo</label><input type="text" id="evFuAction">
-        <label>Taariikhda raadraaca</label><input type="date" id="evFuDate">
-        <label>Saxiixa Macallinka (magac)</label><input type="text" id="evTSign">
-        <label>Saxiixa Kormeeraha (magac)</label><input type="text" id="evSSign">
         <button class="btn gold" id="btnSaveEval" style="width:100%;">💾 Kaydi Qiimeynta</button>
       </div>
     `;
+
+    function syncSubjectToTeacher(){
+      const t = teachers.find(x=>x.id===document.getElementById("evTeacher").value);
+      const subjSel = document.getElementById("evSubject");
+      if (t && t.subject){
+        const opt = [...subjSel.options].find(o=>o.value===t.subject);
+        if (opt) subjSel.value = t.subject;
+      }
+    }
+    document.getElementById("evTeacher").addEventListener("change", syncSubjectToTeacher);
+    syncSubjectToTeacher();
 
     function updateProgress(){
       const n = Object.values(evalState).filter(v=>v.rating).length;
@@ -556,9 +580,8 @@
       if (missing.length){ alert("Fadlan buuxi dhammaan 10-ka su'aalood. Ka dhiman: " + missing.map(m=>m.title.split(".")[0]).join(", ")); return; }
       const v = id => document.getElementById(id).value;
       const items = CRITERIA.map(c=>({ key:c.key, title:c.title, text:c.text, rating:evalState[c.key].rating, comment:evalState[c.key].comment }));
-      const meta = { school:v("evSchool"), class:v("evClass"), supervisorName:v("evSupervisor"), strengths:v("evStrengths"), improvements:v("evImprovements"),
-        recommendations:v("evRecommendations"), followupArea:v("evFuArea"), followupAction:v("evFuAction"), followupDate:v("evFuDate"),
-        teacherSignature:v("evTSign"), supervisorSignature:v("evSSign") };
+      const meta = { school:v("evSchool"), class:v("evClass"), subject:v("evSubject"), supervisorName:v("evSupervisor"), strengths:v("evStrengths"), improvements:v("evImprovements"),
+        recommendations:v("evRecommendations") };
       const teacherId = v("evTeacher");
       const btn = document.getElementById("btnSaveEval"); btn.disabled = true;
       try {
@@ -614,7 +637,7 @@
           <div><h2 style="margin:0;">${escapeHtml(m.school||"Darul Huda Primary and Secondary School")}</h2><div>Warbixinta Qiimeynta Macallinka</div></div>
         </div>
         <table>
-          <tr><th>Macallinka</th><td>${escapeHtml(t.name)}</td><th>Maadada</th><td>${escapeHtml(t.subject||"—")}</td></tr>
+          <tr><th>Macallinka</th><td>${escapeHtml(t.name)}</td><th>Maadada</th><td>${escapeHtml(m.subject||t.subject||"—")}</td></tr>
           <tr><th>Taariikhda</th><td>${String(e.date).slice(0,10)}</td><th>Fasalka</th><td>${escapeHtml(m.class||"—")}</td></tr>
           <tr><th>Kormeeraha</th><td>${escapeHtml(m.supervisorName||"—")}</td><th>Natiijada</th><td><b>${fmt1(score)}%</b> — ${overallLevel(score)}</td></tr>
         </table>
